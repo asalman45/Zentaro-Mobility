@@ -28,7 +28,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-border">
+    <header className="sticky top-0 z-40 w-full bg-[#050506]/40 backdrop-blur-md border-b border-[#1A1A1F]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo / Brand */}
@@ -125,7 +125,7 @@ export function Header() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="md:hidden glass-panel border-t border-border"
+            className="md:hidden bg-[#050506]/60 backdrop-blur-md border-t border-[#1A1A1F]"
           >
             <div className="space-y-1 px-4 py-4 pb-6">
               {navItems.map((item) => (

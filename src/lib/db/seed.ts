@@ -155,7 +155,7 @@ async function main() {
       type: "motorcycle",
       description: "Our premium high-speed sports electric motorcycle. Engineered for adrenaline, highway range, and a commanding street presence.",
       status: "published",
-      featured: false,
+      featured: true,
       heroImage: "/images/models/thunder-hero.png",
       images: [
         "/images/models/thunder-side.png",
@@ -232,7 +232,7 @@ async function main() {
       type: "motorcycle",
       description: "A sporty standard motorcycle engineered for daily commuters in Pakistan. Offering a balance of affordability, rugged suspension, and superior LFP range.",
       status: "published",
-      featured: false,
+      featured: true,
       heroImage: "/images/models/alpha-hero.png",
       images: ["/images/models/alpha-side.png"],
       colors: [
@@ -304,7 +304,7 @@ async function main() {
       type: "scooter",
       description: "A lightweight, stylish step-through electric scooter designed for students and working professionals. Unisex geometry and low seat height.",
       status: "published",
-      featured: false,
+      featured: true,
       heroImage: "/images/models/breeze-hero.png",
       images: ["/images/models/breeze-side.png"],
       colors: [
