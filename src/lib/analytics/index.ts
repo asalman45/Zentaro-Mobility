@@ -4,7 +4,9 @@ type FunnelEvent =
   | { name: "comparison_added"; properties: { model_name: string; count: number } }
   | { name: "checkout_step_completed"; properties: { step: number; step_name: string; order_ref?: string } }
   | { name: "whatsapp_clicked"; properties: { cta_location: string; model_slug?: string } }
-  | { name: "lead_generated"; properties: { source: string; city: string; model_slug?: string } };
+  | { name: "lead_generated"; properties: { source: string; city: string; model_slug?: string } }
+  | { name: "spotlight_slide_changed"; properties: { model_slug: string; index: number } }
+  | { name: "spotlight_explore_clicked"; properties: { model_slug: string } };
 
 export const trackEvent = (event: FunnelEvent) => {
   // In development, log the event structured data for validation

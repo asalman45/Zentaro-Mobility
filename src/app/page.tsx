@@ -13,10 +13,18 @@ import {
   FileText,
   Calculator,
   Percent,
+  Gauge,
+  Timer,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFloating } from "@/components/layout/WhatsAppFloating";
+import { ModelSpotlight } from "@/components/sections/ModelSpotlight";
+import { RidersSpeak } from "@/components/sections/RidersSpeak";
+import { BlogHighlight } from "@/components/sections/BlogHighlight";
+import { PreFooterCTA } from "@/components/sections/PreFooterCTA";
+import { SavingsTeaser } from "@/components/sections/SavingsTeaser";
+import { PaveBanner } from "@/components/sections/PaveBanner";
 import { FadeIn, CountUp, MagneticButton, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { trackEvent } from "@/lib/analytics";
@@ -37,46 +45,43 @@ export default function Home() {
 
   const featuredModels = [
     {
-      slug: "zentaro-thunder",
-      name: "ZENTARO Thunder",
-      type: "Motorcycle",
-      tagline: "Unleash the Storm",
-      basePrice: 549000,
-      originalPrice: 599000,
-      speed: "105 km/h",
-      range: "220 km",
-      charge: "3.5 hrs",
-      battery: "LFP Dual Pro",
-      image: "/images/models/thunder-lime.png",
-      colors: ["#BFFF00", "#1A1A1A", "#00E5FF"],
+      slug: "zentaro-bolt",
+      name: "Zentaro Bolt",
+      type: "MOTORCYCLE",
+      tagline: "City commuter, redefined.",
+      basePrice: 289000,
+      originalPrice: 339000,
+      speed: "80 km/h",
+      range: "120 km",
+      charge: "4 h",
+      battery: "15 yr",
+      renderName: "[ ZENTARO BOLT IMAGE ]",
     },
     {
-      slug: "zentaro-alpha",
-      name: "ZENTARO Alpha",
-      type: "Motorcycle",
-      tagline: "The City Commute, Redefined",
-      basePrice: 429000,
-      originalPrice: 459000,
-      speed: "85 km/h",
-      range: "140 km",
-      charge: "4.0 hrs",
-      battery: "LFP Long-Range",
-      image: "/images/models/alpha-grey.png",
-      colors: ["#4A4A4F", "#DC2626"],
+      slug: "zentaro-storm",
+      name: "Zentaro Storm",
+      type: "MOTORCYCLE",
+      tagline: "Where torque meets thrill.",
+      basePrice: 489000,
+      originalPrice: 549000,
+      speed: "110 km/h",
+      range: "160 km",
+      charge: "5 h",
+      battery: "15 yr",
+      renderName: "[ ZENTARO STORM IMAGE ]",
     },
     {
-      slug: "zentaro-breeze",
-      name: "ZENTARO Breeze",
-      type: "Scooter",
-      tagline: "Glide Through Traffic",
-      basePrice: 329000,
-      originalPrice: 349000,
-      speed: "70 km/h",
-      range: "110 km",
-      charge: "3.0 hrs",
-      battery: "LFP Pro Smart",
-      image: "/images/models/breeze-white.png",
-      colors: ["#FFFFFF", "#0D0D0D", "#F472B6"],
+      slug: "zentaro-apex",
+      name: "Zentaro Apex",
+      type: "MOTORCYCLE",
+      tagline: "Flagship power. Future ride.",
+      basePrice: 749000,
+      originalPrice: 829000,
+      speed: "130 km/h",
+      range: "200 km",
+      charge: "6 h",
+      battery: "15 yr",
+      renderName: "[ ZENTARO APEX IMAGE ]",
     },
   ];
 
@@ -199,6 +204,9 @@ export default function Home() {
           </div>
         </section>
 
+        {/* SECTION: MODEL SPOTLIGHT */}
+        <ModelSpotlight />
+
         {/* SECTION 2: SAVINGS IMPACT BAND */}
         <section className="py-12 bg-card border-y border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -254,75 +262,110 @@ export default function Home() {
           <Stagger className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {featuredModels.map((model) => (
               <StaggerItem key={model.slug}>
-                <div className="group relative flex flex-col justify-between h-full bg-[#121214] border border-border hover:border-volt/35 rounded-2xl overflow-hidden p-6 transition-all duration-300 shadow-xl hover:shadow-[0_0_25px_rgba(0,0,0,0.4)]">
+                <div
+                  className={`group relative flex flex-col justify-between h-full bg-[#0A0A0C] border ${
+                    model.slug === "zentaro-bolt"
+                      ? "border-volt/30 shadow-[0_0_25px_rgba(191,255,0,0.03)]"
+                      : "border-[#161619]"
+                  } hover:border-volt/30 rounded-2xl overflow-hidden p-6 transition-all duration-500 hover:shadow-[0_0_35px_rgba(191,255,0,0.06)]`}
+                >
                   <div>
                     {/* Badge */}
                     <div className="flex justify-between items-start">
-                      <span className="px-3 py-1 rounded-full bg-white/5 border border-border text-[10px] font-bold uppercase tracking-wider text-muted group-hover:text-volt transition-colors">
+                      <span className="px-3.5 py-1 rounded-full bg-black/40 border border-white/5 text-[9px] font-bold tracking-widest text-muted-foreground uppercase">
                         {model.type}
-                      </span>
-                      <span className="text-xs text-muted font-semibold group-hover:text-white">
-                        {model.battery}
                       </span>
                     </div>
 
-                    {/* Image Area - Gradient Placeholder */}
-                    <div className="relative w-full h-44 my-6 flex items-center justify-center rounded-xl bg-gradient-to-b from-[#1a1a1f] to-transparent overflow-hidden">
-                      <div className="absolute inset-0 bg-radial-gradient(circle, rgba(191,255,0,0.05)_0%, transparent_70%) opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    {/* Image Area - Dark Placeholder with monospaced indicator */}
+                    <div className="relative w-full h-[280px] my-6 bg-[#0E0E11] border border-[#1A1A1F] rounded-xl flex flex-col items-center justify-center overflow-hidden">
+                      <div className="absolute inset-0 bg-radial-gradient(circle, rgba(191,255,0,0.02)_0%, transparent_65%) opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
                       
-                      {/* Placeholder Bike Box with Electric Lime Energy Glow lines */}
-                      <div className="text-center space-y-2">
-                        <Zap className="w-12 h-12 text-volt/20 group-hover:text-volt group-hover:scale-110 transition-all duration-500 mx-auto" />
-                        <span className="text-[10px] text-muted group-hover:text-white font-bold tracking-widest uppercase block transition-colors">
-                          {model.name} Render
-                        </span>
-                      </div>
+                      <span className="font-mono text-xs text-muted/40 group-hover:text-volt/65 tracking-[0.15em] transition-all duration-500 select-none">
+                        {model.renderName}
+                      </span>
                     </div>
 
                     {/* Info */}
-                    <div className="space-y-2">
-                      <h3 className="font-display text-2xl font-bold text-white group-hover:text-volt transition-colors">
+                    <div className="space-y-1">
+                      <h3 className="font-display text-xl font-bold text-white group-hover:text-volt transition-colors duration-300">
                         {model.name}
                       </h3>
-                      <p className="text-xs text-muted font-medium italic">{model.tagline}</p>
+                      <p className="text-sm text-muted-foreground/80 font-medium">{model.tagline}</p>
                     </div>
 
-                    {/* Specs Grid */}
-                    <div className="grid grid-cols-3 gap-2 py-4 border-t border-border mt-5 text-center text-xs">
-                      <div>
-                        <span className="text-[10px] text-muted block uppercase tracking-wider">Top Speed</span>
-                        <span className="font-bold text-white mt-0.5 block">{model.speed}</span>
+                    {/* Specs Grid (2x2 capsules) */}
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                      <div className="border border-border/80 rounded-2xl p-3 flex items-center gap-3 bg-black/20">
+                        <Gauge className="w-5 h-5 text-volt" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest block font-bold">TOP SPEED</span>
+                          <span className="text-sm font-bold text-white block">{model.speed}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-muted block uppercase tracking-wider">Range</span>
-                        <span className="font-bold text-white mt-0.5 block">{model.range}</span>
+                      <div className="border border-border/80 rounded-2xl p-3 flex items-center gap-3 bg-black/20">
+                        <Battery className="w-5 h-5 text-volt" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest block font-bold">RANGE</span>
+                          <span className="text-sm font-bold text-white block">{model.range}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-muted block uppercase tracking-wider">Charging</span>
-                        <span className="font-bold text-white mt-0.5 block">{model.charge}</span>
+                      <div className="border border-border/80 rounded-2xl p-3 flex items-center gap-3 bg-black/20">
+                        <Zap className="w-5 h-5 text-volt" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest block font-bold">CHARGE</span>
+                          <span className="text-sm font-bold text-white block">{model.charge}</span>
+                        </div>
+                      </div>
+                      <div className="border border-border/80 rounded-2xl p-3 flex items-center gap-3 bg-black/20">
+                        <Timer className="w-5 h-5 text-volt" />
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest block font-bold">BATTERY</span>
+                          <span className="text-sm font-bold text-white block">{model.battery}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Pricing and Action */}
-                  <div className="pt-4 border-t border-border mt-4 flex items-center justify-between">
-                    <div>
+                  <div className="mt-6 pt-4 border-t border-border/50">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-volt font-display tracking-tight">
+                        Rs {model.basePrice.toLocaleString()}
+                      </span>
                       {model.originalPrice && (
-                        <span className="text-xs text-muted/65 line-through block">
+                        <span className="text-sm text-muted-foreground/50 line-through">
                           Rs {model.originalPrice.toLocaleString()}
                         </span>
                       )}
-                      <span className="text-lg font-black text-white group-hover:text-volt transition-colors block">
-                        Rs {model.basePrice.toLocaleString()}
-                      </span>
                     </div>
 
-                    <Link
-                      href={`/models/${model.slug}`}
-                      className="inline-flex items-center justify-center p-3 rounded-xl bg-card border border-border group-hover:border-volt text-muted group-hover:text-background group-hover:bg-volt transition-all duration-300"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
+                    <div className="flex items-center gap-3 mt-4">
+                      <Link
+                        href={`/models/${model.slug}`}
+                        onClick={() => {
+                          trackEvent({
+                            name: "hero_cta_clicked",
+                            properties: { cta_label: "Explore", destination: `/models/${model.slug}` }
+                          });
+                        }}
+                        className="w-[45%] inline-flex items-center justify-center py-3.5 rounded-full border border-border/80 hover:border-white text-white hover:bg-white/5 text-sm font-semibold tracking-wide transition-all duration-300"
+                      >
+                        Explore
+                      </Link>
+                      <Link
+                        href={`/reserve/${model.slug}`}
+                        onClick={() => {
+                          trackEvent({
+                            name: "hero_cta_clicked",
+                            properties: { cta_label: "Reserve", destination: `/reserve/${model.slug}` }
+                          });
+                        }}
+                        className="w-[55%] inline-flex items-center justify-center py-3.5 rounded-full bg-volt hover:bg-volt-hover text-background text-sm font-bold tracking-wide shadow-[0_0_15px_rgba(191,255,0,0.25)] hover:shadow-[0_0_20px_rgba(191,255,0,0.35)] transition-all duration-300"
+                      >
+                        Reserve
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </StaggerItem>
@@ -407,6 +450,18 @@ export default function Home() {
           </div>
         </section>
 
+        {/* SECTION: SAVINGS CALCULATOR TEASER */}
+        <SavingsTeaser />
+
+        {/* SECTION: PAVE SCHEME SUBSIDY BANNER */}
+        <PaveBanner />
+
+        {/* SECTION: RIDERS SPEAK TESTIMONIALS */}
+        <RidersSpeak />
+
+        {/* SECTION: JOURNAL / LATEST BLOGS */}
+        <BlogHighlight />
+
         {/* SECTION 5: DEALERS LOCATOR MAP */}
         <section className="py-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
@@ -441,6 +496,9 @@ export default function Home() {
             <DealersMap selectedCity={selectedCity} />
           </FadeIn>
         </section>
+
+        {/* SECTION: PRE-FOOTER CALL TO ACTION */}
+        <PreFooterCTA />
       </main>
 
       <Footer />

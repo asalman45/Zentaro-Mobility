@@ -49,7 +49,7 @@ export function Footer() {
     { name: t("nav.savingsCalculator"), href: "/savings-calculator" },
     { name: t("nav.financing"), href: "/financing" },
     { name: t("common.bookTestRide"), href: "/book-test-ride" },
-    { name: "Find Dealer Showrooms", href: "/dealers" },
+    { name: "Find Dealer Showrooms", href: "/dealer" },
   ];
 
   const companyLinks = [

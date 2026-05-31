@@ -94,6 +94,80 @@ const staticPosts: Record<string, BlogPost> = {
       </p>
     `,
   },
+  "pave-scheme-explained": {
+    slug: "pave-scheme-explained",
+    title: "PAVE Scheme Explained: Get Rs 80,000 Off Your Electric Bike",
+    excerpt: "Pakistan's new EV subsidy program is here. Here's how to qualify and apply in under 10 minutes.",
+    category: "Policy",
+    author: "ZENTARO Policy Division",
+    date: "May 12, 2026",
+    readTime: "3 min read",
+    bodyHtml: `
+      <p class="text-base leading-relaxed text-muted mb-6">
+        The Government of Pakistan has officially launched the PAVE EV subsidy program to encourage commuters to switch to electric mobility. Under this program, eligible buyers can receive a direct discount of <strong>Rs 80,000</strong> on certified electric two-wheelers.
+      </p>
+      <h3 class="text-lg font-bold text-white mt-8 mb-4 uppercase tracking-wide">How to Qualify</h3>
+      <p class="text-sm leading-relaxed text-muted mb-4">
+        To be eligible for the PAVE subsidy, applicants must meet the following criteria:
+      </p>
+      <ul class="list-disc list-inside text-sm leading-relaxed text-muted space-y-2 pl-4 mb-6">
+        <li>Must hold a valid CNIC with Pakistani citizenship.</li>
+        <li>One subsidy registration permitted per CNIC.</li>
+        <li>Active registration through the certified dealer portal.</li>
+      </ul>
+      <p class="text-sm leading-relaxed text-muted mb-6">
+        ZENTARO handles all processing automatically when you reserve your bike, ensuring you secure the Rs 80,000 PAVE discount instantly at delivery!
+      </p>
+    `,
+  },
+  "petrol-vs-electric-2026": {
+    slug: "petrol-vs-electric-2026",
+    title: "Petrol vs Electric in 2026: The Real Numbers",
+    excerpt: "We tracked a Honda CD70 and a Zentaro Bolt for 90 days. The savings are bigger than you think.",
+    category: "Comparison",
+    author: "ZENTARO Commute Lab",
+    date: "April 28, 2026",
+    readTime: "5 min read",
+    bodyHtml: `
+      <p class="text-base leading-relaxed text-muted mb-6">
+        To understand the real-world financial implications of shifting from petrol to electric, we tracked two riders traveling the same 40 km daily commute route in Karachi over a 90-day period.
+      </p>
+      <h3 class="text-lg font-bold text-white mt-8 mb-4 uppercase tracking-wide">Real Savings Log</h3>
+      <p class="text-sm leading-relaxed text-muted mb-4">
+        Our tracking log revealed massive economic benefits for the ZENTARO EV:
+      </p>
+      <ul class="list-disc list-inside text-sm leading-relaxed text-muted space-y-2 pl-4 mb-6">
+        <li><strong>Honda CD70 Fuel Cost:</strong> Rs 24,800 total fuel consumed.</li>
+        <li><strong>Zentaro Bolt charging Cost:</strong> Rs 3,920 total electricity consumed.</li>
+        <li><strong>Net Savings:</strong> Over Rs 20,800 saved in a single quarter!</li>
+      </ul>
+      <p class="text-sm leading-relaxed text-muted mb-6">
+        In addition, the petrol bike required three oil changes and engine tuning, incurring another Rs 3,500 in maintenance, while the Bolt had zero maintenance downtime.
+      </p>
+    `,
+  },
+  "lfp-battery-care": {
+    slug: "lfp-battery-care",
+    title: "LFP Battery Care: Make It Last 15 Years",
+    excerpt: "Five simple habits that protect your battery and keep range at 100% for over a decade.",
+    category: "Tips",
+    author: "Battery Safety Group",
+    date: "April 15, 2026",
+    readTime: "4 min read",
+    bodyHtml: `
+      <p class="text-base leading-relaxed text-muted mb-6">
+        Lithium Iron Phosphate (LFP) cells are extremely robust and hold up to 3000 charge cycles. With proper care habits, you can extend the battery service life to over 15 years.
+      </p>
+      <h3 class="text-lg font-bold text-white mt-8 mb-4 uppercase tracking-wide">Five Essential Tips</h3>
+      <ol class="list-decimal list-inside text-sm leading-relaxed text-muted space-y-2 pl-4 mb-6">
+        <li><strong>Avoid Deep Discharge:</strong> Try not to let the charge drop below 10% consistently.</li>
+        <li><strong>Charge Regularly:</strong> LFP battery packs thrive when kept between 20% and 90%.</li>
+        <li><strong>Cool Charging environment:</strong> Charge in a ventilated shade, away from direct sunlight.</li>
+        <li><strong>Use Original Chargers:</strong> Always rely on the built-in smart BMS charger to avoid voltage surges.</li>
+        <li><strong>Storage Charge:</strong> If storing the vehicle for a month, leave the battery state at 50%.</li>
+      </ol>
+    `,
+  },
 };
 
 interface PageProps {

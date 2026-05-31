@@ -19,7 +19,7 @@ export function Header() {
     { name: t("nav.savingsCalculator"), href: "/savings-calculator" },
     { name: t("nav.financing"), href: "/financing" },
     { name: t("nav.compare"), href: "/compare" },
-    { name: t("nav.dealers"), href: "/dealers" },
+    { name: t("nav.dealers"), href: "/dealer" },
     { name: t("nav.blog"), href: "/blog" },
   ];
 

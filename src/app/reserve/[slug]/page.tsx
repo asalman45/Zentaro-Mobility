@@ -76,6 +76,53 @@ const staticModels: Record<string, ModelData> = {
       { id: 6, name: "Breeze LFP Pro", batteryType: "LFP", price: 329000, rangeKm: 110, topSpeedKmh: 70 },
     ],
   },
+  "zentaro-bolt": {
+    slug: "zentaro-bolt",
+    name: "ZENTARO Bolt",
+    type: "motorcycle",
+    colors: [
+      { name: "Utility Red", hex: "#B91C1C" },
+      { name: "Utility Black", hex: "#111827" },
+    ],
+    variants: [
+      { id: 7, name: "Bolt Cargo Graphene", batteryType: "Graphene", price: 289000, rangeKm: 120, topSpeedKmh: 80 },
+    ],
+  },
+  "zentaro-storm": {
+    slug: "zentaro-storm",
+    name: "ZENTARO Storm",
+    type: "motorcycle",
+    colors: [
+      { name: "Storm Matte Blue", hex: "#1D4ED8" },
+    ],
+    variants: [
+      { id: 8, name: "Storm Performance LFP", batteryType: "LFP", price: 489000, rangeKm: 160, topSpeedKmh: 110 },
+    ],
+  },
+  "zentaro-apex": {
+    slug: "zentaro-apex",
+    name: "ZENTARO Apex",
+    type: "motorcycle",
+    colors: [
+      { name: "Electric Lime", hex: "#BFFF00" },
+      { name: "Carbon Stealth", hex: "#1A1A1A" },
+    ],
+    variants: [
+      { id: 9, name: "Apex Ultimate LFP", batteryType: "LFP", price: 749000, rangeKm: 240, topSpeedKmh: 120 },
+    ],
+  },
+  "zentaro-glide": {
+    slug: "zentaro-glide",
+    name: "ZENTARO Glide",
+    type: "scooter",
+    colors: [
+      { name: "Lux Metallic Bronze", hex: "#78350F" },
+      { name: "Lux Silver Pearl", hex: "#E5E7EB" },
+    ],
+    variants: [
+      { id: 10, name: "Glide Premium LFP", batteryType: "LFP", price: 219000, rangeKm: 130, topSpeedKmh: 80 },
+    ],
+  },
 };
 
 interface PageProps {

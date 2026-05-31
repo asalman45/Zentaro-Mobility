@@ -38,6 +38,33 @@ const mockPosts: BlogPost[] = [
     date: "May 27, 2026",
     readTime: "6 min read",
   },
+  {
+    slug: "pave-scheme-explained",
+    title: "PAVE Scheme Explained: Get Rs 80,000 Off Your Electric Bike",
+    excerpt: "Pakistan's new EV subsidy program is here. Here's how to qualify and apply in under 10 minutes.",
+    category: "Policy",
+    author: "ZENTARO Policy Division",
+    date: "May 12, 2026",
+    readTime: "3 min read",
+  },
+  {
+    slug: "petrol-vs-electric-2026",
+    title: "Petrol vs Electric in 2026: The Real Numbers",
+    excerpt: "We tracked a Honda CD70 and a Zentaro Bolt for 90 days. The savings are bigger than you think.",
+    category: "Comparison",
+    author: "ZENTARO Commute Lab",
+    date: "April 28, 2026",
+    readTime: "5 min read",
+  },
+  {
+    slug: "lfp-battery-care",
+    title: "LFP Battery Care: Make It Last 15 Years",
+    excerpt: "Five simple habits that protect your battery and keep range at 100% for over a decade.",
+    category: "Tips",
+    author: "Battery Safety Group",
+    date: "April 15, 2026",
+    readTime: "4 min read",
+  },
 ];
 
 export default function BlogIndexPage() {
@@ -45,7 +72,7 @@ export default function BlogIndexPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const categories = ["all", "Financing & Savings", "Tech & Battery"];
+  const categories = ["all", "Financing & Savings", "Tech & Battery", "Policy", "Comparison", "Tips"];
 
   const filteredPosts = mockPosts.filter((post) => {
     const matchesSearch =
