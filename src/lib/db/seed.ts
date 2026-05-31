@@ -155,7 +155,7 @@ async function main() {
       type: "motorcycle",
       description: "Our premium high-speed sports electric motorcycle. Engineered for adrenaline, highway range, and a commanding street presence.",
       status: "published",
-      featured: true,
+      featured: false,
       heroImage: "/images/models/thunder-hero.png",
       images: [
         "/images/models/thunder-side.png",
@@ -195,7 +195,7 @@ async function main() {
       suspension: "Front Telescopic, Rear Monoshock",
       tyres: "Tubeless (Front 90/90-17, Rear 110/80-17)",
       ipRating: "IP67",
-      smartFeatures: ["NFC Keyless Key", "Anti-Theft System", "App Dash Integration"],
+      smartFeatures: ["NFC Keyless Lock", "Anti-Theft System", "App Dash Integration"],
     },
     {
       modelId: thunder.id,
@@ -232,7 +232,7 @@ async function main() {
       type: "motorcycle",
       description: "A sporty standard motorcycle engineered for daily commuters in Pakistan. Offering a balance of affordability, rugged suspension, and superior LFP range.",
       status: "published",
-      featured: true,
+      featured: false,
       heroImage: "/images/models/alpha-hero.png",
       images: ["/images/models/alpha-side.png"],
       colors: [
@@ -304,7 +304,7 @@ async function main() {
       type: "scooter",
       description: "A lightweight, stylish step-through electric scooter designed for students and working professionals. Unisex geometry and low seat height.",
       status: "published",
-      featured: true,
+      featured: false,
       heroImage: "/images/models/breeze-hero.png",
       images: ["/images/models/breeze-side.png"],
       colors: [
@@ -373,11 +373,11 @@ async function main() {
     .values({
       slug: "zentaro-bolt",
       name: "ZENTARO Bolt",
-      tagline: "Instant Utility",
+      tagline: "City commuter, redefined.",
       type: "motorcycle",
       description: "Our entry-level utility electric motorcycle. Designed to withstand cargo weight, courier work, and rough roads.",
       status: "published",
-      featured: false,
+      featured: true,
       heroImage: "/images/models/bolt-hero.png",
       images: ["/images/models/bolt-side.png"],
       colors: [
@@ -385,6 +385,7 @@ async function main() {
         { name: "Utility Black", hex: "#111827", image: "/images/models/bolt-black.png" },
       ],
       basePrice: 289000,
+      originalPrice: 339000,
       inStock: true,
     })
     .returning();
@@ -395,11 +396,11 @@ async function main() {
       name: "Bolt Cargo Graphene",
       batteryType: "Graphene",
       price: 289000,
-      originalPrice: 299000,
-      topSpeedKmh: 65,
-      rangeKm: 80,
-      chargingTimeHrs: 6.0,
-      batteryLifeYears: 3.0,
+      originalPrice: 339000,
+      topSpeedKmh: 80,
+      rangeKm: 120,
+      chargingTimeHrs: 4.0,
+      batteryLifeYears: 15.0,
       motorWatts: 1500,
       voltage: 60,
       ampHours: 30,
@@ -421,17 +422,18 @@ async function main() {
     .values({
       slug: "zentaro-storm",
       name: "ZENTARO Storm",
-      tagline: "Extreme Thrills",
+      tagline: "Where torque meets thrill.",
       type: "motorcycle",
       description: "Naked sports geometry with a massive liquid-cooled mid-drive motor. Delivering unparalleled acceleration and speed.",
       status: "published",
-      featured: false,
+      featured: true,
       heroImage: "/images/models/storm-hero.png",
       images: ["/images/models/storm-side.png"],
       colors: [
         { name: "Storm Matte Blue", hex: "#1D4ED8", image: "/images/models/storm-blue.png" },
       ],
-      basePrice: 799000,
+      basePrice: 489000,
+      originalPrice: 549000,
       inStock: true,
     })
     .returning();
@@ -441,11 +443,12 @@ async function main() {
       modelId: storm.id,
       name: "Storm Performance LFP",
       batteryType: "LFP",
-      price: 799000,
-      topSpeedKmh: 125,
+      price: 489000,
+      originalPrice: 549000,
+      topSpeedKmh: 110,
       rangeKm: 160,
-      chargingTimeHrs: 4.5,
-      batteryLifeYears: 8.0,
+      chargingTimeHrs: 5.0,
+      batteryLifeYears: 15.0,
       motorWatts: 8000, // Mid-drive performance
       voltage: 84,
       ampHours: 60,
@@ -478,7 +481,8 @@ async function main() {
         { name: "Lux Metallic Bronze", hex: "#78350F", image: "/images/models/glide-bronze.png" },
         { name: "Lux Silver Pearl", hex: "#E5E7EB", image: "/images/models/glide-silver.png" },
       ],
-      basePrice: 469000,
+      basePrice: 219000,
+      originalPrice: 259000,
       inStock: true,
     })
     .returning();
@@ -488,7 +492,8 @@ async function main() {
       modelId: glide.id,
       name: "Glide Premium LFP",
       batteryType: "LFP",
-      price: 469000,
+      price: 219000,
+      originalPrice: 259000,
       topSpeedKmh: 80,
       rangeKm: 130,
       chargingTimeHrs: 4.0,
@@ -505,6 +510,55 @@ async function main() {
       tyres: "12 inch Wide Tubeless Shocks",
       ipRating: "IP67",
       smartFeatures: ["NFC Unlock", "GPS Live tracking", "Large underseat compartment"],
+    }
+  ]);
+
+  // Model 7: ZENTARO Apex (Flagship)
+  const [apex] = await db
+    .insert(models)
+    .values({
+      slug: "zentaro-apex",
+      name: "ZENTARO Apex",
+      tagline: "Flagship power. Future ride.",
+      type: "motorcycle",
+      description: "ZENTARO Apex is our ultimate flagship electric motorcycle, engineered for maximum power, range, and premium riding dynamics. It delivers track-level acceleration and raw power.",
+      status: "published",
+      featured: true,
+      heroImage: "/images/models/apex-hero.png",
+      images: ["/images/models/apex-side.png"],
+      colors: [
+        { name: "Electric Lime", hex: "#BFFF00", image: "/images/models/apex-lime.png" },
+        { name: "Carbon Stealth", hex: "#1A1A1A", image: "/images/models/apex-stealth.png" },
+      ],
+      basePrice: 749000,
+      originalPrice: 829000,
+      inStock: true,
+    })
+    .returning();
+
+  await db.insert(modelVariants).values([
+    {
+      modelId: apex.id,
+      name: "Apex Ultimate LFP",
+      batteryType: "LFP",
+      price: 749000,
+      originalPrice: 829000,
+      topSpeedKmh: 130,
+      rangeKm: 200,
+      chargingTimeHrs: 6.0,
+      batteryLifeYears: 15.0,
+      motorWatts: 6000,
+      voltage: 72,
+      ampHours: 90,
+      chargeCycles: 2500,
+      warrantyMonths: 48,
+      weightKg: 140,
+      loadKg: 180,
+      brakes: "Dual CBS Disc Brakes",
+      suspension: "Front Inverted Telescopic, Rear Monoshock",
+      tyres: "Tubeless Premium Sport compound",
+      ipRating: "IP67",
+      smartFeatures: ["NFC Keyless", "GPS Tracking", "Custom Ride Profiles", "Reverse Assist Mode"],
     }
   ]);
 
@@ -533,6 +587,26 @@ async function main() {
     { modelId: breeze.id, featureId: insertedFeatures[4].id }, // Regen
     { modelId: breeze.id, featureId: insertedFeatures[5].id }, // IP67
   ]);
+
+  // Bind features to Bolt
+  await db.insert(modelToFeatures).values([
+    { modelId: bolt.id, featureId: insertedFeatures[3].id }, // App
+  ]);
+
+  // Bind features to Storm
+  await db.insert(modelToFeatures).values([
+    { modelId: storm.id, featureId: insertedFeatures[1].id }, // GPS
+    { modelId: storm.id, featureId: insertedFeatures[2].id }, // Hub Motor
+    { modelId: storm.id, featureId: insertedFeatures[3].id }, // App
+  ]);
+
+  // Bind features to Apex
+  for (const feat of insertedFeatures) {
+    await db.insert(modelToFeatures).values({
+      modelId: apex.id,
+      featureId: feat.id,
+    });
+  }
 
   // 7. INSERT DEALERS
   console.log("📍 Seeding 12 Dealer locations...");
