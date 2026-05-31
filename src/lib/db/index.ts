@@ -9,11 +9,11 @@ const globalForDb = globalThis as unknown as {
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:54322/postgres";
 
-const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
+const isLocalDev = connectionString.includes("54322");
 
 const pool = globalForDb.conn ?? new Pool({
   connectionString,
-  ssl: isLocal ? undefined : { rejectUnauthorized: false }
+  ssl: isLocalDev ? undefined : { rejectUnauthorized: false }
 });
 
 if (process.env.NODE_ENV !== "production") {
