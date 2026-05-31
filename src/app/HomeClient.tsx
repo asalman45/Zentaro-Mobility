@@ -21,6 +21,7 @@ import { BlogHighlight } from "@/components/sections/BlogHighlight";
 import { PreFooterCTA } from "@/components/sections/PreFooterCTA";
 import { SavingsTeaser } from "@/components/sections/SavingsTeaser";
 import { PaveBanner } from "@/components/sections/PaveBanner";
+import { WhyZentaro } from "@/components/sections/WhyZentaro";
 import { FadeIn, CountUp, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { trackEvent } from "@/lib/analytics";
@@ -277,6 +278,8 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
           </Stagger>
         </section>
 
+        {/* SECTION: WHY ZENTARO (Engineered for Pakistan) */}
+        <WhyZentaro />
 
         {/* SECTION: SAVINGS CALCULATOR TEASER */}
         <SavingsTeaser />
