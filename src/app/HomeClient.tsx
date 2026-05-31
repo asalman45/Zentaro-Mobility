@@ -105,6 +105,11 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
           </div>
         </section>
 
+        {/* SECTION 2: PRODUCT SHOWCASE SLIDER */}
+        <section className="bg-[#050506] border-b border-border">
+          <ModelSpotlight />
+        </section>
+
         {/* SECTION 1.5: KEY METRICS ROW */}
         <section className="bg-black border-y border-[#1A1A1F] py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -141,11 +146,6 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
               </span>
             </div>
           </div>
-        </section>
-
-        {/* SECTION 2: PRODUCT SHOWCASE SLIDER */}
-        <section className="bg-[#050506] border-b border-border">
-          <ModelSpotlight />
         </section>
 
         {/* SECTION 3: MODEL LINEUP */}
