@@ -114,7 +114,7 @@ export const getFeaturedModels = () =>
   cacheWrapper(
     fetchFeaturedModels,
     ["featured-models"],
-    { tags: ["models"] }
+    { revalidate: 60, tags: ["models"] }
   )();
 
 // 2. GET ALL MODELS WITH FILTERS
@@ -203,7 +203,7 @@ export const getAllModels = (options?: {
   return cacheWrapper(
     () => fetchAllModels(options),
     [cacheKey],
-    { tags: ["models"] }
+    { revalidate: 60, tags: ["models"] }
   )();
 };
 
@@ -242,7 +242,7 @@ export const getModelBySlug = (slug: string) =>
   cacheWrapper(
     () => fetchModelBySlug(slug),
     [`model-${slug}`],
-    { tags: [`model:${slug}`, "models"] }
+    { revalidate: 60, tags: [`model:${slug}`, "models"] }
   )();
 
 // 4. GET MODEL FOR RESERVE CONFIGURATOR
@@ -294,7 +294,7 @@ export const getModelForReserve = (slug: string) =>
   cacheWrapper(
     () => fetchModelForReserve(slug),
     [`reserve-${slug}`],
-    { tags: [`model:${slug}`, "models"] }
+    { revalidate: 60, tags: [`model:${slug}`, "models"] }
   )();
 
 // 5. GET COMPARE MODELS
@@ -339,6 +339,6 @@ export const getCompareModels = (slugs: string[]) => {
   return cacheWrapper(
     () => fetchCompareModels(slugs),
     [cacheKey],
-    { tags: ["models"] }
+    { revalidate: 60, tags: ["models"] }
   )();
 };
