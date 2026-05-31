@@ -70,7 +70,7 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
           <div className="relative z-10 text-center max-w-4xl px-4 sm:px-6 space-y-6">
             <FadeIn>
               <span className="text-xs font-bold text-volt tracking-[0.25em] uppercase block">
-                ZENTARO Mobility
+                ZENTARO MOBILITY
               </span>
             </FadeIn>
 
@@ -81,22 +81,23 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
             </FadeIn>
 
             <FadeIn delay={0.4}>
-              <p className="text-muted text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
-                Advanced Lithium LFP technology engineered to conquer Pakistan's climate. Zero emissions, zero gears, pure economic liberation.
+              <p className="text-muted text-sm sm:text-lg max-w-3xl mx-auto leading-relaxed">
+                Advanced Lithium LFP technology engineered to conquer Pakistan's climate.
+                <br />
+                Zero emissions, zero gears, pure economic liberation.
               </p>
             </FadeIn>
 
             <FadeIn delay={0.6} className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/models"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-volt hover:bg-volt-hover text-background text-base font-bold tracking-tight shadow-[0_0_20px_rgba(191,255,0,0.4)] transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-volt hover:bg-volt-hover text-background text-base font-bold tracking-tight shadow-[0_0_20px_rgba(191,255,0,0.4)] hover:shadow-[0_0_25px_rgba(191,255,0,0.55)] transition-all duration-300"
               >
-                Explore Lineup
-                <ChevronRight className="w-5 h-5 ml-1.5" />
+                Explore Lineup &gt;
               </Link>
               <Link
                 href="/book-test-ride"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-xl border border-border text-white hover:border-volt hover:text-volt bg-white/5 transition-all text-base font-bold tracking-tight"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-[#111115] hover:bg-[#181822] text-white hover:text-volt border border-[#1C1C24] transition-all text-base font-bold tracking-tight duration-300"
               >
                 Book Test Ride
               </Link>
@@ -105,38 +106,38 @@ export default function HomeClient({ featuredModels }: HomeClientProps) {
         </section>
 
         {/* SECTION 1.5: KEY METRICS ROW */}
-        <section className="bg-card border-y border-border py-8">
+        <section className="bg-black border-y border-[#1A1A1F] py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
               <span className="font-display text-3xl sm:text-4xl font-black text-white block">
                 Rs <CountUp to={9200} duration={2.5} />
               </span>
-              <span className="text-[10px] text-muted font-bold uppercase tracking-wider block mt-1">
-                Avg. Monthly Savings
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest block mt-2">
+                AVG. MONTHLY SAVINGS
               </span>
             </div>
             <div>
               <span className="font-display text-3xl sm:text-4xl font-black text-white block">
                 <CountUp to={8} duration={2.0} /> Years
               </span>
-              <span className="text-[10px] text-muted font-bold uppercase tracking-wider block mt-1">
-                LFP Battery Warranty Life
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest block mt-2">
+                LFP BATTERY WARRANTY LIFE
               </span>
             </div>
             <div>
               <span className="font-display text-3xl sm:text-4xl font-black text-white block">
                 <CountUp to={130} duration={2.0} /> km/h
               </span>
-              <span className="text-[10px] text-muted font-bold uppercase tracking-wider block mt-1">
-                Maximum Top Speed
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest block mt-2">
+                MAXIMUM TOP SPEED
               </span>
             </div>
             <div>
               <span className="font-display text-3xl sm:text-4xl font-black text-volt block">
                 84%
               </span>
-              <span className="text-[10px] text-volt font-bold uppercase tracking-wider block mt-1">
-                Weekly Fuel Bills Saved
+              <span className="text-[10px] text-volt font-bold uppercase tracking-widest block mt-2">
+                WEEKLY FUEL BILLS SAVED
               </span>
             </div>
           </div>
