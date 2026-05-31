@@ -83,6 +83,45 @@ export default function Home() {
       battery: "15 yr",
       renderName: "[ ZENTARO APEX IMAGE ]",
     },
+    {
+      slug: "zentaro-thunder",
+      name: "Zentaro Thunder",
+      type: "MOTORCYCLE",
+      tagline: "Unleash the Storm.",
+      basePrice: 549000,
+      originalPrice: 599000,
+      speed: "105 km/h",
+      range: "220 km",
+      charge: "3.5 h",
+      battery: "8 yr",
+      renderName: "[ ZENTARO THUNDER IMAGE ]",
+    },
+    {
+      slug: "zentaro-alpha",
+      name: "Zentaro Alpha",
+      type: "MOTORCYCLE",
+      tagline: "The City Commute, Redefined.",
+      basePrice: 429000,
+      originalPrice: 459000,
+      speed: "85 km/h",
+      range: "140 km",
+      charge: "4 h",
+      battery: "8 yr",
+      renderName: "[ ZENTARO ALPHA IMAGE ]",
+    },
+    {
+      slug: "zentaro-breeze",
+      name: "Zentaro Breeze",
+      type: "SCOOTER",
+      tagline: "Glide Through Traffic.",
+      basePrice: 329000,
+      originalPrice: 349000,
+      speed: "70 km/h",
+      range: "110 km",
+      charge: "3 h",
+      battery: "8 yr",
+      renderName: "[ ZENTARO BREEZE IMAGE ]",
+    },
   ];
 
   const featuresList = [
@@ -259,15 +298,11 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          <Stagger className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredModels.map((model) => (
               <StaggerItem key={model.slug}>
                 <div
-                  className={`group relative flex flex-col justify-between h-full bg-[#0A0A0C] border ${
-                    model.slug === "zentaro-bolt"
-                      ? "border-volt/30 shadow-[0_0_25px_rgba(191,255,0,0.03)]"
-                      : "border-[#161619]"
-                  } hover:border-volt/30 rounded-2xl overflow-hidden p-6 transition-all duration-500 hover:shadow-[0_0_35px_rgba(191,255,0,0.06)]`}
+                  className="group relative flex flex-col justify-between h-full bg-[#0A0A0C] border border-[#161619] hover:border-volt/30 rounded-2xl overflow-hidden p-6 transition-all duration-500 hover:shadow-[0_0_35px_rgba(191,255,0,0.06)]"
                 >
                   <div>
                     {/* Badge */}
