@@ -9,6 +9,9 @@ import {
   reservations,
   savingsConfig,
   siteSettings,
+  testRideBookings,
+  installmentApplications,
+  smsLogs,
 } from "@/lib/db/schema";
 import { eq, desc, sql, gte } from "drizzle-orm";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -477,7 +480,7 @@ export async function getOrdersAction() {
       .select({
         id: reservations.id,
         orderRef: reservations.orderRef,
-        customerName: leads.name, // Join via user profile or default to lead info if match exists
+        customerName: leads.name,
         customerPhone: leads.phone,
         modelName: models.name,
         variantName: modelVariants.name,
@@ -493,17 +496,15 @@ export async function getOrdersAction() {
       .from(reservations)
       .leftJoin(models, eq(reservations.modelId, models.id))
       .leftJoin(modelVariants, eq(reservations.variantId, modelVariants.id))
-      // Map names based on matching order refs or simple matching logic
-      .leftJoin(leads, eq(leads.modelId, models.id)) // Fallback matches
+      .leftJoin(leads, eq(leads.modelId, models.id))
       .orderBy(desc(reservations.createdAt));
 
-    // Deduplicate mapping output if left-joins multiply rows
     const uniqueOrders = new Map<string, any>();
     for (const item of list) {
       if (!uniqueOrders.has(item.orderRef)) {
         uniqueOrders.set(item.orderRef, {
           ...item,
-          customerName: item.customerName || "Muhammad Ali", // Fallback name
+          customerName: item.customerName || "Muhammad Ali",
           customerPhone: item.customerPhone || "03001234567",
           date: new Date(item.createdAt).toLocaleDateString("en-US", {
             month: "short",
@@ -623,12 +624,130 @@ export async function updateSettingsAction(input: {
   }
 }
 
-// 7. DEMO DATA SEEDER (DASHBOARD & OPERATIONS CONTROL POPULATION)
+// 7. TEST RIDE MANAGEMENT
+export async function getTestRideBookingsAction() {
+  try {
+    const list = await db
+      .select({
+        id: testRideBookings.id,
+        name: testRideBookings.name,
+        phone: testRideBookings.phone,
+        email: testRideBookings.email,
+        modelName: models.name,
+        showroomName: dealers.name,
+        date: testRideBookings.date,
+        timeSlot: testRideBookings.timeSlot,
+        status: testRideBookings.status,
+      })
+      .from(testRideBookings)
+      .leftJoin(models, eq(testRideBookings.modelId, models.id))
+      .leftJoin(dealers, eq(testRideBookings.dealerId, dealers.id))
+      .orderBy(desc(testRideBookings.id));
+    
+    return list;
+  } catch (error) {
+    console.error("Error getting test ride bookings:", error);
+    return [];
+  }
+}
+
+export async function updateTestRideStatusAction(id: number, status: any) {
+  try {
+    await db.update(testRideBookings).set({ status }).where(eq(testRideBookings.id, id));
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating test ride:", error);
+    return { success: false, error: error.message || "Failed to update status" };
+  }
+}
+
+// 8. FINANCING / INSTALLMENTS REVIEW
+export async function getInstallmentApplicationsAction() {
+  try {
+    const list = await db
+      .select({
+        id: installmentApplications.id,
+        fullName: installmentApplications.fullName,
+        phone: installmentApplications.phone,
+        email: installmentApplications.email,
+        city: installmentApplications.city,
+        modelName: models.name,
+        variantName: modelVariants.name,
+        downPayment: installmentApplications.downPayment,
+        tenureMonths: installmentApplications.tenureMonths,
+        estimatedMonthly: installmentApplications.estimatedMonthly,
+        status: installmentApplications.status,
+        notes: installmentApplications.notes,
+        createdAt: installmentApplications.createdAt,
+      })
+      .from(installmentApplications)
+      .leftJoin(models, eq(installmentApplications.modelId, models.id))
+      .leftJoin(modelVariants, eq(installmentApplications.variantId, modelVariants.id))
+      .orderBy(desc(installmentApplications.createdAt));
+
+    return list.map((l) => ({
+      ...l,
+      date: new Date(l.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    }));
+  } catch (error) {
+    console.error("Error getting installment applications:", error);
+    return [];
+  }
+}
+
+export async function updateInstallmentStatusAction(id: number, status: any, notes?: string) {
+  try {
+    const updateData: any = { status };
+    if (notes !== undefined) updateData.notes = notes;
+
+    await db.update(installmentApplications).set(updateData).where(eq(installmentApplications.id, id));
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating installment status:", error);
+    return { success: false, error: error.message || "Failed to update status" };
+  }
+}
+
+// 9. SMS AUDIT LOGS
+export async function getSmsLogsAction() {
+  try {
+    const list = await db
+      .select()
+      .from(smsLogs)
+      .orderBy(desc(smsLogs.createdAt))
+      .limit(10);
+
+    return list.map((log) => ({
+      id: log.id,
+      phone: log.phone,
+      message: log.message,
+      status: log.status,
+      time: new Date(log.createdAt).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    }));
+  } catch (error) {
+    console.error("Error getting SMS logs:", error);
+    return [];
+  }
+}
+
+// 10. ENTERPRISE SYSTEM SEEDER
 export async function seedSampleSystemDataAction() {
   try {
-    console.log("🧹 Clearing old leads and reservations data...");
+    console.log("🧹 Clearing old operational logs...");
     await db.delete(reservations);
     await db.delete(leads);
+    await db.delete(testRideBookings);
+    await db.delete(installmentApplications);
+    await db.delete(smsLogs);
 
     const activeModels = await db.select().from(models);
     const activeVariants = await db.select().from(modelVariants);
@@ -646,7 +765,10 @@ export async function seedSampleSystemDataAction() {
     const apexVar = activeVariants.find((v) => v.modelId === apex.id) || activeVariants[0];
 
     const showRooms = await db.select().from(dealers).limit(2);
-    const showroomId = showRooms[0]?.id || null;
+    const showroomId = showRooms[0]?.id;
+    if (!showroomId) {
+      throw new Error("No showroom loaded. Seeding requires a dealer showroom in the DB.");
+    }
 
     console.log("📝 Generating sample CRM leads...");
     const sampleLeadsData = [
@@ -663,8 +785,6 @@ export async function seedSampleSystemDataAction() {
     }
 
     console.log("💳 Seeding sample customer reservations (orders)...");
-    
-    // Create random timestamps within the last 30 days
     const generateTimestamp = (daysAgo: number) => {
       const d = new Date();
       d.setDate(d.getDate() - daysAgo);
@@ -702,6 +822,36 @@ export async function seedSampleSystemDataAction() {
         shippingAddress: "Karachi Central Showroom Deliveries Hub",
         createdAt: generateTimestamp(order.days),
       });
+    }
+
+    console.log("🏍️ Seeding sample test ride bookings...");
+    const testRidesToInsert = [
+      { name: "Haris Jamil", phone: "03001112223", email: "haris@gmail.pk", modelId: bolt.id, dealerId: showroomId, date: "2026-06-03", timeSlot: "10:00 AM - 11:30 AM", status: "pending" as const, createdAt: generateTimestamp(3) },
+      { name: "Zeeshan Butt", phone: "03125556667", email: "zeeshan@example.pk", modelId: apex.id, dealerId: showroomId, date: "2026-06-02", timeSlot: "02:00 PM - 03:30 PM", status: "confirmed" as const, createdAt: generateTimestamp(2) },
+      { name: "Kamran Shah", phone: "03009991234", email: "kamran@gmail.com", modelId: storm.id, dealerId: showroomId, date: "2026-05-30", timeSlot: "11:30 AM - 01:00 PM", status: "completed" as const, createdAt: generateTimestamp(6) },
+    ];
+    for (const tr of testRidesToInsert) {
+      await db.insert(testRideBookings).values(tr);
+    }
+
+    console.log("💵 Seeding sample installment applications...");
+    const installmentsToInsert = [
+      { fullName: "Dr. Samina Khan", phone: "03334445556", email: "samina@hospital.pk", city: "Lahore", modelId: storm.id, variantId: stormVar.id, downPayment: 120000, tenureMonths: 12, estimatedMonthly: 30750, status: "new" as const, notes: "Prefers flat rate zero markup plan.", createdAt: generateTimestamp(4) },
+      { fullName: "Aftab Ahmed", phone: "03214441112", email: "aftab@finance.pk", city: "Karachi", modelId: apex.id, variantId: apexVar.id, downPayment: 225000, tenureMonths: 24, estimatedMonthly: 21875, status: "approved" as const, notes: "Credit checks verified, application approved.", createdAt: generateTimestamp(8) },
+    ];
+    for (const inst of installmentsToInsert) {
+      await db.insert(installmentApplications).values(inst);
+    }
+
+    console.log("📱 Seeding sample outbound SMS notifications logs...");
+    const smsLogsToInsert = [
+      { phone: "03001112223", message: "ZENTARO: Your test ride booking for Zentaro Bolt on 2026-06-03 is CONFIRMED. Bring CNIC.", status: "sent", createdAt: generateTimestamp(3) },
+      { phone: "03125556667", message: "ZENTARO: Your test ride booking for Zentaro Apex on 2026-06-02 is CONFIRMED. Bring CNIC.", status: "sent", createdAt: generateTimestamp(2) },
+      { phone: "03219998887", message: "ZENTARO: Your order ZEN-51203 for Zentaro Apex LFP has been DELIVERED.", status: "sent", createdAt: generateTimestamp(21) },
+      { phone: "03334445556", message: "ZENTARO: Thank you for applying for ZENTARO Easy Installments. Our team will contact you shortly.", status: "sent", createdAt: generateTimestamp(4) },
+    ];
+    for (const log of smsLogsToInsert) {
+      await db.insert(smsLogs).values(log);
     }
 
     revalidatePath("/admin");

@@ -24,6 +24,10 @@ import {
   ChevronUp,
   Receipt,
   Sparkles,
+  Calendar,
+  DollarSign,
+  MessageSquare,
+  FileText,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -44,6 +48,11 @@ import {
   updateVariantAction,
   deleteVariantAction,
   seedSampleSystemDataAction,
+  getTestRideBookingsAction,
+  updateTestRideStatusAction,
+  getInstallmentApplicationsAction,
+  updateInstallmentStatusAction,
+  getSmsLogsAction,
 } from "@/app/actions/admin";
 
 interface Lead {
@@ -117,10 +126,46 @@ interface Order {
   shippingAddress: string;
 }
 
+interface TestRide {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  modelName: string | null;
+  showroomName: string | null;
+  date: string;
+  timeSlot: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled";
+}
+
+interface InstallmentApp {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  city: string;
+  modelName: string | null;
+  variantName: string | null;
+  downPayment: number;
+  tenureMonths: number;
+  estimatedMonthly: number;
+  status: "new" | "contacted" | "approved" | "rejected";
+  notes: string | null;
+  date: string;
+}
+
+interface SmsLog {
+  id: number;
+  phone: string;
+  message: string;
+  status: string;
+  time: string;
+}
+
 export default function AdminPortalPage() {
   const router = useRouter();
   const [adminUser, setAdminUser] = useState<UserSession | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "crm" | "orders" | "cms" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "crm" | "orders" | "testrides" | "installments" | "cms" | "settings">("dashboard");
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Stats state
@@ -139,6 +184,16 @@ export default function AdminPortalPage() {
   const [ordersList, setOrdersList] = useState<Order[]>([]);
   const [ordersSearch, setOrdersSearch] = useState("");
   const [ordersFilterStatus, setOrdersFilterStatus] = useState("all");
+
+  // Test Rides state
+  const [testRidesList, setTestRidesList] = useState<TestRide[]>([]);
+
+  // Installments state
+  const [installmentsList, setInstallmentsList] = useState<InstallmentApp[]>([]);
+  const [selectedNotes, setSelectedNotes] = useState<Record<number, string>>({});
+
+  // SMS Logs
+  const [smsLogsList, setSmsLogsList] = useState<SmsLog[]>([]);
 
   // CMS state
   const [modelsList, setModelsList] = useState<ModelCMS[]>([]);
@@ -215,10 +270,13 @@ export default function AdminPortalPage() {
   const loadAllData = async () => {
     setIsLoadingData(true);
     try {
-      const [statsRes, leadsRes, ordersRes, modelsRes, settingsRes] = await Promise.all([
+      const [statsRes, leadsRes, ordersRes, testRidesRes, installmentsRes, smsRes, modelsRes, settingsRes] = await Promise.all([
         getAdminStatsAction(),
         getLeadsAction(),
         getOrdersAction(),
+        getTestRideBookingsAction(),
+        getInstallmentApplicationsAction(),
+        getSmsLogsAction(),
         getModelsAdminAction(),
         getSettingsAction(),
       ]);
@@ -226,10 +284,21 @@ export default function AdminPortalPage() {
       setStats(statsRes);
       setLeadsList(leadsRes as any[]);
       setOrdersList(ordersRes as any[]);
+      setTestRidesList(testRidesRes as any[]);
+      setInstallmentsList(installmentsRes as any[]);
+      setSmsLogsList(smsRes as any[]);
       setModelsList(modelsRes as any[]);
       setPetrolPrice(settingsRes.petrolPrice);
       setElectricityRate(settingsRes.electricityRate);
       setWhatsappNumber(settingsRes.whatsappNumber);
+
+      // Pre-fill notes
+      const notesMap: Record<number, string> = {};
+      installmentsRes.forEach((app) => {
+        notesMap[app.id] = app.notes || "";
+      });
+      setSelectedNotes(notesMap);
+
     } catch (err) {
       console.error("Failed to load data from database", err);
     } finally {
@@ -266,7 +335,6 @@ export default function AdminPortalPage() {
         setOrdersList((prev) =>
           prev.map((order) => (order.id === orderId ? { ...order, [field]: nextValue } : order))
         );
-        // Refresh dashboard stats on status updates
         const statsRes = await getAdminStatsAction();
         setStats(statsRes);
       } else {
@@ -275,6 +343,61 @@ export default function AdminPortalPage() {
     } catch (err) {
       console.error(err);
       alert("Error saving order status changes");
+    }
+  };
+
+  const handleUpdateTestRideStatus = async (id: number, nextStatus: TestRide["status"]) => {
+    try {
+      const res = await updateTestRideStatusAction(id, nextStatus);
+      if (res.success) {
+        setTestRidesList((prev) =>
+          prev.map((tr) => (tr.id === id ? { ...tr, status: nextStatus } : tr))
+        );
+      } else {
+        alert(res.error || "Failed to update test ride");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating test ride");
+    }
+  };
+
+  const handleUpdateInstallmentStatus = async (id: number, nextStatus: InstallmentApp["status"]) => {
+    try {
+      const currentNotes = selectedNotes[id] || "";
+      const res = await updateInstallmentStatusAction(id, nextStatus, currentNotes);
+      if (res.success) {
+        setInstallmentsList((prev) =>
+          prev.map((app) => (app.id === id ? { ...app, status: nextStatus, notes: currentNotes } : app))
+        );
+        alert(`Application status updated to ${nextStatus.toUpperCase()}`);
+      } else {
+        alert(res.error || "Failed to update installment application");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating installment status");
+    }
+  };
+
+  const handleSaveInstallmentNotes = async (id: number) => {
+    try {
+      const notes = selectedNotes[id] || "";
+      const currentApp = installmentsList.find((app) => app.id === id);
+      if (!currentApp) return;
+
+      const res = await updateInstallmentStatusAction(id, currentApp.status, notes);
+      if (res.success) {
+        setInstallmentsList((prev) =>
+          prev.map((app) => (app.id === id ? { ...app, notes } : app))
+        );
+        alert("Filing notes saved successfully!");
+      } else {
+        alert(res.error || "Failed to save application notes");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error saving notes");
     }
   };
 
@@ -302,7 +425,7 @@ export default function AdminPortalPage() {
       const res = await seedSampleSystemDataAction();
       if (res.success) {
         await loadAllData();
-        alert("Success! 10 orders and 6 CRM leads have been generated.");
+        alert("Success! Checkout orders, CRM leads, test rides and logs generated.");
       } else {
         alert(res.error || "Failed to seed demo data");
       }
@@ -624,9 +747,7 @@ export default function AdminPortalPage() {
               <button
                 onClick={() => setActiveTab("dashboard")}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === "dashboard"
-                    ? "bg-volt text-background"
-                    : "text-muted hover:text-white"
+                  activeTab === "dashboard" ? "bg-volt text-background" : "text-muted hover:text-white"
                 }`}
               >
                 Dashboard
@@ -648,6 +769,22 @@ export default function AdminPortalPage() {
                 Order Manager
               </button>
               <button
+                onClick={() => setActiveTab("testrides")}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "testrides" ? "bg-volt text-background" : "text-muted hover:text-white"
+                }`}
+              >
+                Test Rides
+              </button>
+              <button
+                onClick={() => setActiveTab("installments")}
+                className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "installments" ? "bg-volt text-background" : "text-muted hover:text-white"
+                }`}
+              >
+                Installments
+              </button>
+              <button
                 onClick={() => setActiveTab("cms")}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === "cms" ? "bg-volt text-background" : "text-muted hover:text-white"
@@ -658,9 +795,7 @@ export default function AdminPortalPage() {
               <button
                 onClick={() => setActiveTab("settings")}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === "settings"
-                    ? "bg-volt text-background"
-                    : "text-muted hover:text-white"
+                  activeTab === "settings" ? "bg-volt text-background" : "text-muted hover:text-white"
                 }`}
               >
                 Settings
@@ -668,15 +803,15 @@ export default function AdminPortalPage() {
             </div>
           </div>
 
-          {/* Seed Data Banner on Dashboard if database has 0 orders */}
+          {/* Seed Data Banner */}
           {activeTab === "dashboard" && stats.totalOrders === 0 && (
             <div className="mb-6 p-4 bg-volt/10 border border-volt/20 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-white">
               <div>
                 <span className="font-bold flex items-center gap-1.5 text-volt text-xs uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4" /> Seeding Demo Sandbox
+                  <Sparkles className="w-4 h-4" /> Seed System Operational Records
                 </span>
                 <p className="text-[11px] text-muted font-medium mt-1 leading-relaxed">
-                  The orders and leads tables in the database are currently empty. Click the button to load sample operational data and generate the line charts!
+                  The tables in the database are currently empty. Seed demo records (orders, leads, bookings, calculator metrics) to test the live line charts instantly.
                 </p>
               </div>
               <button
@@ -745,52 +880,85 @@ export default function AdminPortalPage() {
                     </div>
                   </div>
 
-                  {/* Order volume trend line graph */}
-                  <div className="p-6 bg-[#0D0D0F] border border-border rounded-2xl space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">
-                        Live System Bookings & Reservations Trends
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] text-muted font-bold">Dynamically generated</span>
-                        {stats.totalOrders > 0 && (
-                          <button
-                            onClick={handleSeedDemoData}
-                            disabled={isSeeding}
-                            className="bg-white/5 border border-border text-[9px] hover:border-volt px-2.5 py-1 text-white rounded font-bold cursor-pointer transition-all flex items-center"
-                          >
-                            Reset / Re-seed Data
-                          </button>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Weekly bookings trends */}
+                    <div className="lg:col-span-2 p-6 bg-[#0D0D0F] border border-border rounded-2xl space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-white uppercase tracking-wider">
+                          Live System Bookings & Reservations Trends
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-muted font-bold">Dynamically generated</span>
+                          {stats.totalOrders > 0 && (
+                            <button
+                              onClick={handleSeedDemoData}
+                              disabled={isSeeding}
+                              className="bg-white/5 border border-border text-[9px] hover:border-volt px-2.5 py-1 text-white rounded font-bold cursor-pointer transition-all flex items-center"
+                            >
+                              Reset / Re-seed Data
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="w-full h-[250px] text-xs">
+                        {stats.salesTrendData.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={stats.salesTrendData}
+                              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                            >
+                              <XAxis dataKey="name" stroke="#52525B" tickLine={false} />
+                              <YAxis stroke="#52525B" tickLine={false} />
+                              <Tooltip
+                                contentStyle={{ backgroundColor: "#121214", borderColor: "#27272A" }}
+                                labelStyle={{ fontWeight: "bold", color: "#FFFFFF" }}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="sales"
+                                stroke="#BFFF00"
+                                strokeWidth={3}
+                                dot={{ fill: "#BFFF00" }}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted">
+                            No trend data available. Try seeding mock bookings above.
+                          </div>
                         )}
                       </div>
                     </div>
-                    <div className="w-full h-[250px] text-xs">
-                      {stats.salesTrendData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={stats.salesTrendData}
-                            margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                          >
-                            <XAxis dataKey="name" stroke="#52525B" tickLine={false} />
-                            <YAxis stroke="#52525B" tickLine={false} />
-                            <Tooltip
-                              contentStyle={{ backgroundColor: "#121214", borderColor: "#27272A" }}
-                              labelStyle={{ fontWeight: "bold", color: "#FFFFFF" }}
-                            />
-                            <Line
-                              type="monotone"
-                              dataKey="sales"
-                              stroke="#BFFF00"
-                              strokeWidth={3}
-                              dot={{ fill: "#BFFF00" }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted">
-                          No trend data available. Try seeding mock bookings above.
-                        </div>
-                      )}
+
+                    {/* SMS audit logs */}
+                    <div className="p-6 bg-[#0D0D0F] border border-border rounded-2xl space-y-4 flex flex-col justify-between">
+                      <div className="border-b border-border pb-2 flex items-center space-x-2">
+                        <MessageSquare className="w-4 h-4 text-volt" />
+                        <span className="text-xs font-bold text-white uppercase tracking-wider">
+                          Outbound SMS Audit Trail
+                        </span>
+                      </div>
+
+                      <div className="flex-grow space-y-3 overflow-y-auto max-h-[220px] scrollbar-hide pt-2 text-[10px]">
+                        {smsLogsList.map((log) => (
+                          <div key={log.id} className="border-b border-border/50 pb-2 space-y-1">
+                            <div className="flex justify-between items-center text-[9px] text-muted">
+                              <span className="font-bold text-white font-mono">{log.phone}</span>
+                              <span>{log.time}</span>
+                            </div>
+                            <p className="text-white/80 font-medium leading-relaxed">{log.message}</p>
+                            <span className="inline-block px-1.5 py-0.5 rounded bg-volt/10 text-volt text-[8px] font-bold uppercase tracking-wider">
+                              {log.status}
+                            </span>
+                          </div>
+                        ))}
+
+                        {smsLogsList.length === 0 && (
+                          <div className="text-center py-10 text-muted italic">
+                            No notifications dispatched yet.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -812,7 +980,6 @@ export default function AdminPortalPage() {
                     </button>
                   </div>
 
-                  {/* Kanban board layout */}
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
                     {(["new", "contacted", "qualified", "won", "lost"] as const).map((colStatus) => {
                       const filtered = leadsList.filter((l) => l.status === colStatus);
@@ -844,7 +1011,6 @@ export default function AdminPortalPage() {
                                   Showroom: {lead.assignedDealer}
                                 </span>
 
-                                {/* Update Status Dropdown */}
                                 <div className="pt-2 border-t border-border mt-2 flex items-center justify-between">
                                   <span className="text-muted/60">Status:</span>
                                   <select
@@ -976,7 +1142,7 @@ export default function AdminPortalPage() {
                                 onChange={(e) =>
                                   handleUpdateOrderStatus(order.id, "fulfilmentStatus", e.target.value as any)
                                 }
-                                className={`border border-border outline-none font-bold rounded-xl text-[10px] px-3 py-1 cursor-pointer bg-[#050506] text-white focus:border-volt`}
+                                className="border border-border outline-none font-bold rounded-xl text-[10px] px-3 py-1 cursor-pointer bg-[#050506] text-white focus:border-volt"
                               >
                                 <option value="pending">Pending</option>
                                 <option value="preparing">Preparing</option>
@@ -1001,7 +1167,199 @@ export default function AdminPortalPage() {
                 </div>
               )}
 
-              {/* TAB 4: CATALOG CMS */}
+              {/* TAB 4: TEST RIDES */}
+              {activeTab === "testrides" && (
+                <div className="bg-[#0D0D0F] border border-border rounded-2xl p-6 space-y-6 animate-fade-in">
+                  <div className="border-b border-border pb-3">
+                    <span className="text-sm font-bold text-white uppercase tracking-wider block">
+                      Test Ride Bookings Scheduler
+                    </span>
+                    <p className="text-[10px] text-muted font-medium mt-1">
+                      Manage customer test drive appointments across Pakistan regional showrooms.
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto text-left">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b border-border text-white text-[10px] font-bold uppercase tracking-wider pb-2">
+                          <th className="py-3">Customer</th>
+                          <th className="py-3">Model Requested</th>
+                          <th className="py-3">Showroom Location</th>
+                          <th className="py-3">Date</th>
+                          <th className="py-3">Time Slot</th>
+                          <th className="py-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border text-white font-medium text-xs">
+                        {testRidesList.map((ride) => (
+                          <tr key={ride.id} className="hover:bg-white/5 transition-colors">
+                            <td className="py-3.5">
+                              <span className="block font-bold text-white">{ride.name}</span>
+                              <span className="block text-[10px] text-muted">{ride.phone} • {ride.email}</span>
+                            </td>
+                            <td className="py-3.5 font-bold text-volt">{ride.modelName || "Standard Model"}</td>
+                            <td className="py-3.5 text-white">{ride.showroomName || "Karachi Clifton"}</td>
+                            <td className="py-3.5 font-mono text-muted">{ride.date}</td>
+                            <td className="py-3.5 text-muted">{ride.timeSlot}</td>
+                            <td className="py-3.5">
+                              <select
+                                value={ride.status}
+                                onChange={(e) =>
+                                  handleUpdateTestRideStatus(ride.id, e.target.value as any)
+                                }
+                                className={`border border-border outline-none font-bold rounded-xl text-[10px] px-3 py-1 cursor-pointer bg-[#050506] ${
+                                  ride.status === "completed"
+                                    ? "text-volt focus:border-volt"
+                                    : ride.status === "cancelled"
+                                    ? "text-red-400 focus:border-red-400"
+                                    : "text-white focus:border-volt"
+                                }`}
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+
+                        {testRidesList.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="text-center py-10 text-muted italic">
+                              No test rides scheduled.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: INSTALLMENTS */}
+              {activeTab === "installments" && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="bg-[#0D0D0F] border border-border rounded-2xl p-6">
+                    <div className="border-b border-border pb-3 mb-6">
+                      <span className="text-sm font-bold text-white uppercase tracking-wider block">
+                        Installment Financing Applications
+                      </span>
+                      <p className="text-[10px] text-muted font-medium mt-1">
+                        Evaluate rider credit requests, flat-rate leasing configurations, and update statuses.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {installmentsList.map((app) => (
+                        <div
+                          key={app.id}
+                          className="bg-[#050506] border border-border rounded-xl p-5 space-y-4"
+                        >
+                          <div className="flex justify-between items-start border-b border-border/50 pb-2">
+                            <div>
+                              <span className="font-bold text-white text-sm block">{app.fullName}</span>
+                              <span className="text-[10px] text-muted">{app.phone} • {app.city}</span>
+                            </div>
+
+                            <span
+                              className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
+                                app.status === "approved"
+                                  ? "bg-volt/10 text-volt border-volt/20"
+                                  : app.status === "rejected"
+                                  ? "bg-red-400/10 text-red-400 border-red-400/20"
+                                  : "bg-white/5 text-white border-border"
+                              }`}
+                            >
+                              {app.status}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-[10px] font-semibold text-muted">
+                            <div>
+                              <span className="block text-[8px] uppercase">Vehicle Requested</span>
+                              <span className="block text-white font-bold mt-0.5">
+                                {app.modelName} ({app.variantName})
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[8px] uppercase">Down Payment</span>
+                              <span className="block text-volt font-bold mt-0.5">
+                                Rs {app.downPayment.toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[8px] uppercase">Tenure Months</span>
+                              <span className="block text-white font-bold mt-0.5">
+                                {app.tenureMonths} Months
+                              </span>
+                            </div>
+                            <div>
+                              <span className="block text-[8px] uppercase">Estimated Monthly</span>
+                              <span className="block text-white font-bold mt-0.5">
+                                Rs {app.estimatedMonthly.toLocaleString()}/mo
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Notes field */}
+                          <div className="space-y-1">
+                            <label className="text-[9px] text-muted block uppercase">Filing Auditor Notes</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={selectedNotes[app.id] ?? ""}
+                                onChange={(e) =>
+                                  setSelectedNotes({ ...selectedNotes, [app.id]: e.target.value })
+                                }
+                                placeholder="Enter verification notes..."
+                                className="flex-grow bg-[#121214] border border-border text-white text-[10px] rounded-lg px-3 py-1.5 outline-none focus:border-volt font-medium"
+                              />
+                              <button
+                                onClick={() => handleSaveInstallmentNotes(app.id)}
+                                className="px-3 py-1.5 bg-white/5 border border-border hover:border-volt hover:text-volt text-[10px] rounded-lg text-white font-bold cursor-pointer transition-all flex items-center justify-center shrink-0"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
+                            <button
+                              onClick={() => handleUpdateInstallmentStatus(app.id, "approved")}
+                              className="px-3 py-1.5 bg-volt hover:bg-volt-hover text-background font-bold text-[10px] rounded-lg cursor-pointer border-none flex items-center transition-all"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleUpdateInstallmentStatus(app.id, "rejected")}
+                              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded-lg cursor-pointer border-none flex items-center transition-all"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleUpdateInstallmentStatus(app.id, "contacted")}
+                              className="px-3 py-1.5 bg-white/5 border border-border hover:bg-white/10 text-white font-bold text-[10px] rounded-lg cursor-pointer transition-all"
+                            >
+                              Mark Contacted
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {installmentsList.length === 0 && (
+                        <div className="col-span-2 text-center py-10 text-muted italic">
+                          No financing installment requests filed.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: CATALOG CMS */}
               {activeTab === "cms" && (
                 <div className="bg-[#0D0D0F] border border-border rounded-2xl p-6 space-y-6 animate-fade-in">
                   <div className="flex justify-between items-center border-b border-border pb-3">
@@ -1096,12 +1454,11 @@ export default function AdminPortalPage() {
                               </td>
                             </tr>
 
-                            {/* EXPANDED MODEL DETAILS (VARIANTS & COLORS EDITOR) */}
+                            {/* EXPANDED MODEL DETAILS */}
                             {expandedModelId === model.id && (
                               <tr>
                                 <td colSpan={7} className="p-6 bg-[#050506] border-t border-b border-border">
                                   <div className="space-y-6">
-                                    {/* Sub-section 1: Variants */}
                                     <div className="space-y-3">
                                       <div className="flex justify-between items-center">
                                         <span className="text-white text-[11px] font-bold uppercase tracking-wider">
@@ -1172,7 +1529,6 @@ export default function AdminPortalPage() {
                                       </div>
                                     </div>
 
-                                    {/* Sub-section 2: Color Swatches Preview */}
                                     <div className="space-y-2 border-t border-border pt-4">
                                       <span className="text-white text-[11px] font-bold uppercase tracking-wider block">
                                         Configured Color Swatches
@@ -1194,7 +1550,7 @@ export default function AdminPortalPage() {
 
                                         {(!model.colors || model.colors.length === 0) && (
                                           <span className="text-muted text-[10px] italic">
-                                            No colors configured for configurator.
+                                            No colors configured.
                                           </span>
                                         )}
                                       </div>
@@ -1211,7 +1567,7 @@ export default function AdminPortalPage() {
                 </div>
               )}
 
-              {/* TAB 5: SETTINGS */}
+              {/* TAB 7: SETTINGS */}
               {activeTab === "settings" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start animate-fade-in">
                   <div className="bg-[#0D0D0F] border border-border p-6 rounded-2xl space-y-4">
@@ -1309,7 +1665,7 @@ export default function AdminPortalPage() {
       {/* 1. CMS ADD/EDIT MODEL DIALOG */}
       {isModelDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-2xl rounded-2xl shadow-2xl p-6 text-white max-h-[95vh] overflow-y-auto">
+          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-2xl rounded-2xl shadow-2xl p-6 text-white max-h-[95vh] overflow-y-auto font-sans">
             <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
               <span className="font-display text-base font-black text-white uppercase tracking-wider">
                 {currentModelId ? `Edit Model Details` : `Add New Vehicle Model`}
@@ -1322,7 +1678,7 @@ export default function AdminPortalPage() {
               </button>
             </div>
 
-            <form onSubmit={handleModelFormSubmit} className="space-y-4 text-xs font-semibold">
+            <form onSubmit={handleModelFormSubmit} className="space-y-4 text-xs font-semibold text-muted">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-muted block uppercase">Model Name</label>
@@ -1332,7 +1688,7 @@ export default function AdminPortalPage() {
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="Zentaro Storm"
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1343,7 +1699,7 @@ export default function AdminPortalPage() {
                     onChange={(e) => setFormSlug(e.target.value)}
                     placeholder="zentaro-storm"
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono font-medium"
                   />
                 </div>
               </div>
@@ -1357,7 +1713,7 @@ export default function AdminPortalPage() {
                     onChange={(e) => setFormTagline(e.target.value)}
                     placeholder="High Performance Cruiser"
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1382,7 +1738,7 @@ export default function AdminPortalPage() {
                   placeholder="Provide details about the specs, battery configurations, etc."
                   required
                   rows={2}
-                  className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                  className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                 />
               </div>
 
@@ -1394,7 +1750,7 @@ export default function AdminPortalPage() {
                     value={formBasePrice}
                     onChange={(e) => setFormBasePrice(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1406,7 +1762,7 @@ export default function AdminPortalPage() {
                       setFormOriginalPrice(e.target.value === "" ? "" : Number(e.target.value))
                     }
                     placeholder="Strikethrough price"
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1416,7 +1772,7 @@ export default function AdminPortalPage() {
                     value={formHeroImage}
                     onChange={(e) => setFormHeroImage(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono font-medium"
                   />
                 </div>
               </div>
@@ -1465,7 +1821,7 @@ export default function AdminPortalPage() {
                   placeholder='[ { "name": "Volt", "hex": "#BFFF00", "image": "/images/models/bolt-hero.png" } ]'
                   required
                   rows={4}
-                  className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono text-[10px]"
+                  className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-mono text-[10px] font-medium"
                 />
               </div>
 
@@ -1480,7 +1836,7 @@ export default function AdminPortalPage() {
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-hover text-background font-bold text-xs flex items-center justify-center transition-all cursor-pointer border-none"
+                  className="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-hover text-background font-bold text-xs flex items-center justify-center transition-all cursor-pointer border-none shadow-md"
                 >
                   {formSubmitting ? (
                     <>
@@ -1500,7 +1856,7 @@ export default function AdminPortalPage() {
       {/* 2. CMS ADD/EDIT VARIANT DIALOG */}
       {isVariantDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-2xl rounded-2xl shadow-2xl p-6 text-white max-h-[95vh] overflow-y-auto">
+          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-2xl rounded-2xl shadow-2xl p-6 text-white max-h-[95vh] overflow-y-auto font-sans">
             <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
               <span className="font-display text-base font-black text-white uppercase tracking-wider">
                 {currentVariantId ? `Edit Variant Specifications` : `Add Variant & Specs`}
@@ -1513,7 +1869,7 @@ export default function AdminPortalPage() {
               </button>
             </div>
 
-            <form onSubmit={handleVariantFormSubmit} className="space-y-4 text-xs font-semibold">
+            <form onSubmit={handleVariantFormSubmit} className="space-y-4 text-xs font-semibold text-muted">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-muted block uppercase">Variant Name</label>
@@ -1523,7 +1879,7 @@ export default function AdminPortalPage() {
                     onChange={(e) => setFormVarName(e.target.value)}
                     placeholder="Standard LFP or Long-Range Pro"
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1548,7 +1904,7 @@ export default function AdminPortalPage() {
                     value={formVarPrice}
                     onChange={(e) => setFormVarPrice(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1560,7 +1916,7 @@ export default function AdminPortalPage() {
                       setFormVarOriginalPrice(e.target.value === "" ? "" : Number(e.target.value))
                     }
                     placeholder="Original price"
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1570,7 +1926,7 @@ export default function AdminPortalPage() {
                     value={formVarSpeed}
                     onChange={(e) => setFormVarSpeed(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
               </div>
@@ -1583,7 +1939,7 @@ export default function AdminPortalPage() {
                     value={formVarRange}
                     onChange={(e) => setFormVarRange(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1594,7 +1950,7 @@ export default function AdminPortalPage() {
                     value={formVarChargeTime}
                     onChange={(e) => setFormVarChargeTime(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1605,7 +1961,7 @@ export default function AdminPortalPage() {
                     value={formVarBatteryLife}
                     onChange={(e) => setFormVarBatteryLife(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1615,7 +1971,7 @@ export default function AdminPortalPage() {
                     value={formVarMotorWatts}
                     onChange={(e) => setFormVarMotorWatts(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
               </div>
@@ -1628,7 +1984,7 @@ export default function AdminPortalPage() {
                     value={formVarVoltage}
                     onChange={(e) => setFormVarVoltage(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1638,7 +1994,7 @@ export default function AdminPortalPage() {
                     value={formVarAmphours}
                     onChange={(e) => setFormVarAmphours(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1648,7 +2004,7 @@ export default function AdminPortalPage() {
                     value={formVarChargeCycles}
                     onChange={(e) => setFormVarChargeCycles(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1658,7 +2014,7 @@ export default function AdminPortalPage() {
                     value={formVarWarranty}
                     onChange={(e) => setFormVarWarranty(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
               </div>
@@ -1671,7 +2027,7 @@ export default function AdminPortalPage() {
                     value={formVarWeight}
                     onChange={(e) => setFormVarWeight(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1681,7 +2037,7 @@ export default function AdminPortalPage() {
                     value={formVarLoad}
                     onChange={(e) => setFormVarLoad(Number(e.target.value))}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1691,7 +2047,7 @@ export default function AdminPortalPage() {
                     value={formVarBrakes}
                     onChange={(e) => setFormVarBrakes(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1701,7 +2057,7 @@ export default function AdminPortalPage() {
                     value={formVarTyres}
                     onChange={(e) => setFormVarTyres(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
               </div>
@@ -1714,7 +2070,7 @@ export default function AdminPortalPage() {
                     value={formVarSuspension}
                     onChange={(e) => setFormVarSuspension(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1724,7 +2080,7 @@ export default function AdminPortalPage() {
                     value={formVarIpRating}
                     onChange={(e) => setFormVarIpRating(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1734,7 +2090,7 @@ export default function AdminPortalPage() {
                     value={formVarSmartFeatures}
                     onChange={(e) => setFormVarSmartFeatures(e.target.value)}
                     required
-                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt"
+                    className="w-full bg-[#050506] border border-border rounded-xl px-4 py-2.5 text-white outline-none focus:border-volt font-medium"
                   />
                 </div>
               </div>
@@ -1750,7 +2106,7 @@ export default function AdminPortalPage() {
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-hover text-background font-bold text-xs flex items-center justify-center transition-all cursor-pointer border-none"
+                  className="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-hover text-background font-bold text-xs flex items-center justify-center transition-all cursor-pointer border-none shadow-md"
                 >
                   {formSubmitting ? (
                     <>
@@ -1770,7 +2126,7 @@ export default function AdminPortalPage() {
       {/* 3. CONFIRM DELETE MODEL DIALOG */}
       {isDeleteDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-md rounded-2xl shadow-2xl p-6 text-white space-y-4">
+          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-md rounded-2xl shadow-2xl p-6 text-white space-y-4 font-sans">
             <div className="flex items-center space-x-3 text-red-500">
               <ShieldAlert className="w-6 h-6" />
               <span className="font-display text-base font-black uppercase tracking-wider">
@@ -1804,7 +2160,7 @@ export default function AdminPortalPage() {
       {/* 4. CONFIRM DELETE VARIANT DIALOG */}
       {isVariantDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-md rounded-2xl shadow-2xl p-6 text-white space-y-4">
+          <div className="bg-[#121214] border border-[#1A1A1F] w-full max-w-md rounded-2xl shadow-2xl p-6 text-white space-y-4 font-sans">
             <div className="flex items-center space-x-3 text-red-500">
               <ShieldAlert className="w-6 h-6" />
               <span className="font-display text-base font-black uppercase tracking-wider">
