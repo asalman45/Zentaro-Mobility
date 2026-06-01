@@ -22,11 +22,19 @@ export default function LoginPage() {
     if (!email || !password) return;
     setIsLoading(true);
     
-    // Simulate login success - standard customer session
+    // Simulate login success - check manual credentials
     setTimeout(() => {
-      setSession("customer");
       setIsLoading(false);
-      router.push("/account/dashboard");
+      if (email === "admin@zentaro.pk" && password === "admin123") {
+        setSession("admin");
+        router.push("/admin");
+      } else if (email === "clifton@zentaro.pk" && password === "dealer123") {
+        setSession("dealer");
+        router.push("/dealer");
+      } else {
+        setSession("customer");
+        router.push("/account/dashboard");
+      }
     }, 1000);
   };
 

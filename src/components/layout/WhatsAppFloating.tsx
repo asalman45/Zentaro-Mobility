@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -15,9 +15,21 @@ export function WhatsAppFloating({
   message = "Hi ZENTARO Mobility, I am interested in booking a test ride / reserving an EV motorcycle!",
 }: WhatsAppFloatingProps) {
   const { t } = useLanguage();
+  const [whatsappNo, setWhatsappNo] = useState(number);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.whatsappNumber) {
+          setWhatsappNo(data.whatsappNumber);
+        }
+      })
+      .catch((err) => console.error("Error loading dynamic whatsapp number:", err));
+  }, []);
   
   // Format number to remove symbols and keep digits for wa.me API
-  const formattedNumber = number.replace(/[^0-9]/g, "");
+  const formattedNumber = whatsappNo.replace(/[^0-9]/g, "");
   const waUrl = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`;
 
   return (

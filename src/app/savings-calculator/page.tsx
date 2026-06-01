@@ -54,6 +54,16 @@ export default function SavingsCalculatorPage() {
   const [chartData, setChartData] = useState<{ name: string; savings: number }[]>([]);
 
   useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.petrolPrice) setPetrolPrice(data.petrolPrice);
+        if (data.electricityRate) setElectricityRate(data.electricityRate);
+      })
+      .catch((err) => console.error("Error loading calculator settings:", err));
+  }, []);
+
+  useEffect(() => {
     // 1. Petrol Bike running cost per day
     const fuelCostPerDay = (dailyKm / selectedPetrolBike.consumptionKmPerLitre) * petrolPrice;
     const maintenanceCostPerDay = selectedPetrolBike.maintenancePerKm * dailyKm;
